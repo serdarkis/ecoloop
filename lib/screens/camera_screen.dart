@@ -14,7 +14,7 @@ class _CameraScreenState extends State<CameraScreen> {
   File _imageFile = File('');
   int? _selectedMaterial;
   final List<String> _materials = ['Metal', 'Plastik', 'Kağıt', 'Cam'];
-  late String _token; // Access token
+  late String _token;
 
   @override
   void initState() {
@@ -22,7 +22,6 @@ class _CameraScreenState extends State<CameraScreen> {
     _getToken();
   }
 
-  // Get token from SharedPreferences
   Future<void> _getToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
@@ -34,8 +33,10 @@ class _CameraScreenState extends State<CameraScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: Text('Select Image'),
+        title: Text('Fotoğraf Seç'),
+        backgroundColor: Color(0xFF97E2B5),
       ),
       body: Center(
         child: Column(
@@ -46,24 +47,30 @@ class _CameraScreenState extends State<CameraScreen> {
                     _imageFile,
                     height: 200,
                   )
-                : Text('No image selected.'),
+                : Text('Fotoğraf seçilmedi.'),
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
                 _getImage(ImageSource.camera);
               },
-              child: Text('Take a Photo'),
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white, backgroundColor: Color(0xFF97E2B5),
+              ),
+              child: Text('Fotoğraf Çek'),
             ),
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
                 _getImage(ImageSource.gallery);
               },
-              child: Text('Select from Gallery'),
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white, backgroundColor: Color(0xFF97E2B5),
+              ),
+              child: Text('Galeriden Seç'),
             ),
             SizedBox(height: 20),
             DropdownButton<int>(
-              hint: Text("Select Material"),
+              hint: Text("Malzeme Seç"),
               value: _selectedMaterial,
               onChanged: (int? newValue) {
                 setState(() {
@@ -71,7 +78,7 @@ class _CameraScreenState extends State<CameraScreen> {
                 });
               },
               items: _materials.asMap().entries.map((entry) {
-                int idx = entry.key + 1; // index starts from 1
+                int idx = entry.key + 1;
                 String value = entry.value;
                 return DropdownMenuItem<int>(
                   value: idx,
@@ -85,10 +92,13 @@ class _CameraScreenState extends State<CameraScreen> {
                 if (_imageFile.path.isNotEmpty && _selectedMaterial != null) {
                   _sendImageToApi(_imageFile, _selectedMaterial!);
                 } else {
-                  print('Image or material not selected');
+                  print('Fotoğraf veya malzeme seçilmedi');
                 }
               },
-              child: Text('Upload Image'),
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white, backgroundColor: Color(0xFF97E2B5),
+              ),
+              child: Text('Fotoğraf Yükle'),
             ),
           ],
         ),
@@ -111,33 +121,25 @@ class _CameraScreenState extends State<CameraScreen> {
     final url = Uri.parse('http://10.0.2.2:8000/api/user-recycling-material/');
     final request = http.MultipartRequest('POST', url);
 
-    // Add image file
     final imagePart = await http.MultipartFile.fromPath('image', imageFile.path);
     request.files.add(imagePart);
 
-    // Add fields
     request.fields['material'] = selectedMaterial.toString();
 
-    // Add Authorization header
     request.headers['Authorization'] = 'Token $_token';
 
-    // Send request
     final streamedResponse = await request.send();
-
-    // Read response
     final response = await http.Response.fromStream(streamedResponse);
 
-    // Check response code
     if (response.statusCode == 201) {
-      // Show success message and navigate to profile screen
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Image uploaded successfully')),
+        SnackBar(content: Text('Fotoğraf başarıyla yüklendi')),
       );
       Navigator.pushNamed(context, '/profile');
     } else {
-      print('Failed to upload image');
+      print('Fotoğraf yükleme başarısız');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to upload image')),
+        SnackBar(content: Text('Fotoğraf yükleme başarısız')),
       );
     }
   }

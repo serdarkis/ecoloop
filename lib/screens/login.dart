@@ -27,8 +27,6 @@ class LoginScreen extends StatelessWidget {
 
       if (response.statusCode == 200) {
         var data = json.decode(response.body);
-
-        // Yanıtı ekrana yazdırarak token'ın nerede olduğunu belirleyin
         print('Response data: $data');
 
         if (data.containsKey('key')) {
@@ -45,7 +43,6 @@ class LoginScreen extends StatelessWidget {
           );
         }
       } else {
-        // Yanıtın HTML içermesi durumunda
         if (response.headers['content-type']?.contains('html') == true) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Login failed: Received HTML instead of JSON.')),
@@ -72,8 +69,10 @@ class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: Text('Login'),
+        title: Text('Giriş Yap'),
+        backgroundColor: Color(0xFF97E2B5),
         leading: Container(),
       ),
       body: Padding(
@@ -84,7 +83,13 @@ class LoginScreen extends StatelessWidget {
             TextFormField(
               controller: _usernameController,
               decoration: InputDecoration(
-                labelText: 'Username',
+                labelText: 'Kullanıcı Adı',
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF97E2B5)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color.fromARGB(76, 95, 95, 95)),
+                ),
               ),
             ),
             SizedBox(height: 20.0),
@@ -92,20 +97,35 @@ class LoginScreen extends StatelessWidget {
               controller: _emailController,
               decoration: InputDecoration(
                 labelText: 'Email',
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF97E2B5)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color.fromARGB(76, 95, 95, 95)),
+                ),
               ),
             ),
             SizedBox(height: 20.0),
             TextFormField(
               controller: _passwordController,
               decoration: InputDecoration(
-                labelText: 'Password',
+                labelText: 'Şifre',
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF97E2B5)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color.fromARGB(76, 95, 95, 95)),
+                ),
               ),
               obscureText: true,
             ),
             SizedBox(height: 20.0),
             ElevatedButton(
               onPressed: () => _login(context),
-              child: Text('Login'),
+              child: Text('Giriş Yap'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFF97E2B5),
+              ),
             ),
             SizedBox(height: 20.0),
             TextButton(
@@ -116,13 +136,17 @@ class LoginScreen extends StatelessWidget {
                 );
               },
               child: Text('Üye ol'),
+              style: TextButton.styleFrom(
+                foregroundColor: Color(0xFF97E2B5),
+              ),
             ),
             SizedBox(height: 10.0),
             TextButton(
-              onPressed: () {
-                
-              },
+              onPressed: () {},
               child: Text('Şifremi unuttum.'),
+              style: TextButton.styleFrom(
+                foregroundColor: Color(0xFF97E2B5),
+              ),
             ),
           ],
         ),

@@ -6,6 +6,7 @@ class AboutUsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Hakkımızda / About Us'),
+        backgroundColor: Color(0xFF97E2B5),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
@@ -20,7 +21,7 @@ class AboutUsScreen extends StatelessWidget {
               style: TextStyle(fontSize: 16),
             ),
             SizedBox(height: 20),
-            Divider(height: 20, thickness: 2, color: Colors.grey),
+            Divider(height: 20, thickness: 2, color: Color(0xFF97E2B5)),
             SizedBox(height: 20),
             Text(
               'We are 3 students studying at Pamukkale University.\n'

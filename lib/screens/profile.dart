@@ -114,31 +114,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _fetchDonationData(String token) async {
-  final response = await http.get(
-    Uri.parse('http://10.0.2.2:8000/api/user-donations/'),
-    headers: {'Authorization': 'Token $token'},
-  );
+    final response = await http.get(
+      Uri.parse('http://10.0.2.2:8000/api/user-donations/'),
+      headers: {'Authorization': 'Token $token'},
+    );
 
-  if (response.statusCode == 200) {
-    var data = json.decode(response.body);
+    if (response.statusCode == 200) {
+      var data = json.decode(response.body);
 
-    // Eğer veri bir listeyse ve boş değilse, ilk bağış girişini kullanın
-    if (data is List && data.isNotEmpty) {
-      var donation = data[0];
-      setState(() {
-        donationCount = donation['amount']; // amount string olarak yayınlanıyor
-        lastDonationDate = _formatDate(donation['donation_date']);
-      });
+      // Eğer veri bir listeyse ve boş değilse, ilk bağış girişini kullanın
+      if (data is List && data.isNotEmpty) {
+        var donation = data[0];
+        setState(() {
+          donationCount = donation['amount']; // amount string olarak yayınlanıyor
+          lastDonationDate = _formatDate(donation['donation_date']);
+        });
+      } else {
+        setState(() {
+          donationCount = '0'; // Henüz bağış yokken string olarak "0"
+          lastDonationDate = 'Henüz bağış yok';
+        });
+      }
     } else {
-      setState(() {
-        donationCount = '0'; // Henüz bağış yokken string olarak "0"
-        lastDonationDate = 'Henüz bağış yok';
-      });
+      _handleError(response);
     }
-  } else {
-    _handleError(response);
   }
-}
 
   String _formatDate(String dateStr) {
     DateTime dateTime = DateTime.parse(dateStr);
@@ -247,76 +247,76 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showUpdateUsernameDialog() {
-  TextEditingController _usernameController = TextEditingController();
+    TextEditingController _usernameController = TextEditingController();
 
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text('Kullanıcı Adını Güncelle'),
-        content: TextField(
-          controller: _usernameController,
-          decoration: InputDecoration(hintText: 'Yeni kullanıcı adı'),
-        ),
-        actions: <Widget>[
-          TextButton(
-            child: Text('İptal'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Kullanıcı Adını Güncelle'),
+          content: TextField(
+            controller: _usernameController,
+            decoration: InputDecoration(hintText: 'Yeni kullanıcı adı'),
           ),
-          TextButton(
-            child: Text('Onayla'),
-            onPressed: () {
-              String newUsername = _usernameController.text.trim();
-              if (newUsername.isNotEmpty) {
+          actions: <Widget>[
+            TextButton(
+              child: Text('İptal'),
+              onPressed: () {
                 Navigator.of(context).pop();
-                _updateUsername(newUsername);
-              }
-            },
-          ),
-        ],
+              },
+            ),
+            TextButton(
+              child: Text('Onayla'),
+              onPressed: () {
+                String newUsername = _usernameController.text.trim();
+                if (newUsername.isNotEmpty) {
+                  Navigator.of(context).pop();
+                  _updateUsername(newUsername);
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _updateUsername(String newUsername) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
+
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Token not found. Please login again.')),
       );
-    },
-  );
-}
+      return;
+    }
 
-Future<void> _updateUsername(String newUsername) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  String? token = prefs.getString('token');
-
-  if (token == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Token not found. Please login again.')),
+    final response = await http.put(
+      Uri.parse('http://10.0.2.2:8000/api/rest-auth/user/'),
+      headers: {'Authorization': 'Token $token'},
+      body: {'username': newUsername},
     );
-    return;
+
+    if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Kullanıcı adı başarıyla değiştirildi')),
+      );
+      // Kullanıcı adı başarıyla değiştirildiğinde profil verilerini yenile
+      await loadProfileData();
+    } else {
+      _handleError(response);
+    }
   }
 
-  final response = await http.put(
-    Uri.parse('http://10.0.2.2:8000/api/rest-auth/user/'),
-    headers: {'Authorization': 'Token $token'},
-    body: {'username': newUsername},
-  );
-
-  if (response.statusCode == 200) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Kullanıcı adı başarıyla değiştirildi')),
-    );
-    // Kullanıcı adı başarıyla değiştirildiğinde profil verilerini yenile
-    await loadProfileData();
-  } else {
-    _handleError(response);
-  }
-}
-
-
-
-   @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: Text('Marka İsmi'),
-         leading: IconButton(
+        title: Text('EcoLoop'),
+        backgroundColor: Color(0xFF97E2B5),
+        leading: IconButton(
           icon: Icon(Icons.logout),
           onPressed: _showLogoutDialog,
         ),
@@ -332,18 +332,24 @@ Future<void> _updateUsername(String newUsername) async {
               children: [
                 NavBarItem(
                   title: 'Profil',
+                  icon: Icons.person,
+                  isSelected: true,
                   onTap: () {
                     // Profil ekranında zaten olduğu için bir işlem yapmıyoruz
                   },
                 ),
                 NavBarItem(
-                  title: 'LBoard',
+                  title: 'Lider T.',
+                  icon: Icons.leaderboard,
+                  isSelected: false,
                   onTap: () {
                     Navigator.pushNamed(context, '/lboard');
                   },
                 ),
                 NavBarItem(
-                  title: 'Files',
+                  title: 'Dosya',
+                  icon: Icons.file_present,
+                  isSelected: false,
                   onTap: () {
                     Navigator.pushNamed(context, '/files');
                   },
@@ -353,36 +359,32 @@ Future<void> _updateUsername(String newUsername) async {
             SizedBox(height: 20),
             // Profil Bilgileri
             Center(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+              child: Column(
                 children: [
-                  Expanded(
-                    child: Column(
-                      children: [
-                        GestureDetector(
-                          onTap: _pickImage,
-                          child: CircleAvatar(
-                            radius: 50,
-                            backgroundImage: NetworkImage(profileImageUrl),
-                          ),
-                        ),
-                        SizedBox(height: 10),
-                        Text(
-                          name,
-                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                        ),
-                         IconButton(
-                    icon: Icon(Icons.edit),
-                    onPressed: _showUpdateUsernameDialog,
-                  ),
-                      ],
+                  GestureDetector(
+                    onTap: _pickImage,
+                    child: CircleAvatar(
+                      radius: 50,
+                      backgroundImage: NetworkImage(profileImageUrl),
                     ),
                   ),
-                 
+                  SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        name,
+                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.edit),
+                        onPressed: _showUpdateUsernameDialog,
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
-
             SizedBox(height: 20),
             // Puan Bilgisi
             Text(
@@ -407,19 +409,27 @@ Future<void> _updateUsername(String newUsername) async {
               child: ElevatedButton(
                 onPressed: () {
                   ThanksOverlay.show(context, loadProfileData);
-
                 },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF97E2B5),
+                ),
                 child: Text('Bağış Yap'),
               ),
             ),
             SizedBox(height: 20),
             // Hakkımızda Butonu
-            Center(
-              child: TextButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/aboutus');
-                },
-                child: Text('Hakkımızda', style: TextStyle(fontSize: 16)),
+            Expanded(
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/aboutus');
+                  },
+                  child: Text(
+                    'Hakkımızda',
+                    style: TextStyle(fontSize: 14),
+                  ),
+                ),
               ),
             ),
           ],
@@ -429,6 +439,7 @@ Future<void> _updateUsername(String newUsername) async {
         onPressed: () {
           Navigator.pushNamed(context, '/camera');
         },
+        backgroundColor: Color(0xFF97E2B5),
         child: Icon(Icons.camera_alt),
       ),
     );
@@ -437,17 +448,27 @@ Future<void> _updateUsername(String newUsername) async {
 
 class NavBarItem extends StatelessWidget {
   final String title;
+  final IconData icon;
+  final bool isSelected;
   final VoidCallback onTap;
 
-  NavBarItem({required this.title, required this.onTap});
+  NavBarItem({required this.title, required this.icon, required this.isSelected, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Text(
-        title,
-        style: TextStyle(fontSize: 18),
+      child: Column(
+        children: [
+          Icon(icon, color: isSelected ? Color(0xFF97E2B5) : Colors.grey),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 18,
+              color: isSelected ? Color(0xFF97E2B5) : Colors.grey,
+            ),
+          ),
+        ],
       ),
     );
   }

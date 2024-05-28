@@ -36,7 +36,8 @@ class _LBoardScreenState extends State<LBoardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Marka İsmi'),
+        title: Text('EcoLoop'),
+        backgroundColor: Color(0xFF97E2B5),
         leading: Container(),
       ),
       body: Padding(
@@ -50,18 +51,24 @@ class _LBoardScreenState extends State<LBoardScreen> {
               children: [
                 NavBarItem(
                   title: 'Profil',
+                  icon: Icons.person,
+                  isSelected: false,
                   onTap: () {
                     Navigator.pushNamed(context, '/profile');
                   },
                 ),
                 NavBarItem(
-                  title: 'LBoard',
+                  title: 'Lider T.',
+                  icon: Icons.leaderboard,
+                  isSelected: true,
                   onTap: () {
                     // LBoard ekranında zaten olduğu için bir işlem yapmıyoruz
                   },
                 ),
                 NavBarItem(
-                  title: 'Files',
+                  title: 'Dosya',
+                  icon: Icons.file_present,
+                  isSelected: false,
                   onTap: () {
                     Navigator.pushNamed(context, '/files');
                   },
@@ -85,7 +92,6 @@ class _LBoardScreenState extends State<LBoardScreen> {
                       itemBuilder: (context, index) {
                         var leader = donationLeaders[index];
                         return ListTile(
-                          
                           title: Text(leader['username']), // Kullanıcı adı
                           trailing: Text('${leader['total_donation']} Bağış'), // Bağış sayısı
                         );
@@ -105,6 +111,7 @@ class _LBoardScreenState extends State<LBoardScreen> {
             MaterialPageRoute(builder: (context) => CameraScreen()),
           );
         },
+        backgroundColor: Color(0xFF97E2B5),
         child: Icon(Icons.camera_alt),
       ),
     );
@@ -113,17 +120,27 @@ class _LBoardScreenState extends State<LBoardScreen> {
 
 class NavBarItem extends StatelessWidget {
   final String title;
+  final IconData icon;
+  final bool isSelected;
   final VoidCallback onTap;
 
-  NavBarItem({required this.title, required this.onTap});
+  NavBarItem({required this.title, required this.icon, required this.isSelected, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Text(
-        title,
-        style: TextStyle(fontSize: 18),
+      child: Column(
+        children: [
+          Icon(icon, color: isSelected ? Color(0xFF97E2B5) : Colors.grey),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 18,
+              color: isSelected ? Color(0xFF97E2B5) : Colors.grey,
+            ),
+          ),
+        ],
       ),
     );
   }

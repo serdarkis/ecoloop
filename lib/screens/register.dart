@@ -23,7 +23,7 @@ class RegisterScreen extends StatelessWidget {
 
     try {
       final response = await client.post(
-        Uri.parse('http://10.0.2.2:8000/api/rest-auth/registration/'), 
+        Uri.parse('http://10.0.2.2:8000/api/rest-auth/registration/'),
         body: jsonEncode({
           'username': _usernameController.text,
           'email': _emailController.text,
@@ -43,9 +43,8 @@ class RegisterScreen extends StatelessWidget {
           MaterialPageRoute(builder: (context) => LoginScreen()),
         );
       } else if (response.statusCode == 204) {
-        // 204 No Content durumunu işleyin
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Registration successful, but no content returned.')),
+          SnackBar(content: Text('Hoşgeldiniz. Lütfen giriş yapın.')),
         );
 
         Navigator.pushReplacement(
@@ -53,22 +52,21 @@ class RegisterScreen extends StatelessWidget {
           MaterialPageRoute(builder: (context) => LoginScreen()),
         );
       } else {
-        // Hata durumunu işleyin
         if (response.body.isNotEmpty) {
           var errorData = json.decode(response.body);
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Registration failed: ${errorData.toString()}')),
+            SnackBar(content: Text('Üye Olunamadı: ${errorData.toString()}')),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Registration failed: Unknown error')),
+            SnackBar(content: Text('Bilinmeyen bir sebeple üye olma işlemi başarısız oldu')),
           );
         }
       }
     } catch (e) {
       print(e);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An error occurred: $e')),
+        SnackBar(content: Text('Bir hata oluştu: $e')),
       );
     }
   }
@@ -76,8 +74,10 @@ class RegisterScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: Text('Register'),
+        title: Text('Üye Ol'),
+        backgroundColor: Color(0xFF97E2B5),
         leading: Container(),
       ),
       body: Padding(
@@ -88,7 +88,13 @@ class RegisterScreen extends StatelessWidget {
             TextFormField(
               controller: _usernameController,
               decoration: InputDecoration(
-                labelText: 'Username',
+                labelText: 'Kullanıcı adı',
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF97E2B5)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color.fromARGB(76, 95, 95, 95)),
+                ),
               ),
             ),
             SizedBox(height: 20.0),
@@ -96,13 +102,25 @@ class RegisterScreen extends StatelessWidget {
               controller: _emailController,
               decoration: InputDecoration(
                 labelText: 'Email',
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF97E2B5)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color.fromARGB(76, 95, 95, 95)),
+                ),
               ),
             ),
             SizedBox(height: 20.0),
             TextFormField(
               controller: _passwordController,
               decoration: InputDecoration(
-                labelText: 'Password',
+                labelText: 'Şifre',
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF97E2B5)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color.fromARGB(76, 95, 95, 95)),
+                ),
               ),
               obscureText: true,
             ),
@@ -110,14 +128,23 @@ class RegisterScreen extends StatelessWidget {
             TextFormField(
               controller: _confirmPasswordController,
               decoration: InputDecoration(
-                labelText: 'Confirm Password',
+                labelText: 'Şifreyi doğrula',
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF97E2B5)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color.fromARGB(76, 95, 95, 95)),
+                ),
               ),
               obscureText: true,
             ),
             SizedBox(height: 20.0),
             ElevatedButton(
               onPressed: () => _register(context),
-              child: Text('Register'),
+              child: Text('Üye Ol'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFF97E2B5),
+              ),
             ),
             SizedBox(height: 20.0),
             TextButton(
@@ -127,7 +154,10 @@ class RegisterScreen extends StatelessWidget {
                   MaterialPageRoute(builder: (context) => LoginScreen()),
                 );
               },
-              child: Text('Login'),
+              child: Text('Giriş Yap'),
+              style: TextButton.styleFrom(
+                foregroundColor: Color(0xFF97E2B5),
+              ),
             ),
           ],
         ),
