@@ -5,19 +5,6 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: CameraScreen(),
-    );
-  }
-}
-
 class CameraScreen extends StatefulWidget {
   @override
   _CameraScreenState createState() => _CameraScreenState();
@@ -25,9 +12,8 @@ class CameraScreen extends StatefulWidget {
 
 class _CameraScreenState extends State<CameraScreen> {
   File _imageFile = File('');
-  String? _selectedMaterial;
-  String? _username;
-  final List<String> _materials = ['Metal', 'Plastik', 'Material 3'];
+  int? _selectedMaterial;
+  final List<String> _materials = ['Metal', 'Plastik', 'Kağıt', 'Cam'];
   late String _token; // Access token
 
   @override
@@ -43,7 +29,6 @@ class _CameraScreenState extends State<CameraScreen> {
     setState(() {
       _token = token!;
     });
-    _fetchName(); // After getting token, fetch username
   }
 
   @override
@@ -58,9 +43,9 @@ class _CameraScreenState extends State<CameraScreen> {
           children: <Widget>[
             _imageFile.path.isNotEmpty
                 ? Image.file(
-              _imageFile,
-              height: 200,
-            )
+                    _imageFile,
+                    height: 200,
+                  )
                 : Text('No image selected.'),
             SizedBox(height: 20),
             ElevatedButton(
@@ -77,17 +62,19 @@ class _CameraScreenState extends State<CameraScreen> {
               child: Text('Select from Gallery'),
             ),
             SizedBox(height: 20),
-            DropdownButton<String>(
+            DropdownButton<int>(
               hint: Text("Select Material"),
               value: _selectedMaterial,
-              onChanged: (String? newValue) {
+              onChanged: (int? newValue) {
                 setState(() {
                   _selectedMaterial = newValue;
                 });
               },
-              items: _materials.map((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
+              items: _materials.asMap().entries.map((entry) {
+                int idx = entry.key + 1; // index starts from 1
+                String value = entry.value;
+                return DropdownMenuItem<int>(
+                  value: idx,
                   child: Text(value),
                 );
               }).toList(),
@@ -95,12 +82,10 @@ class _CameraScreenState extends State<CameraScreen> {
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                if (_imageFile.path.isNotEmpty &&
-                    _selectedMaterial != null &&
-                    _username != null) {
-                  _sendImageToApi(_imageFile, _selectedMaterial!, _username!);
+                if (_imageFile.path.isNotEmpty && _selectedMaterial != null) {
+                  _sendImageToApi(_imageFile, _selectedMaterial!);
                 } else {
-                  print('Image, material, or username not selected');
+                  print('Image or material not selected');
                 }
               },
               child: Text('Upload Image'),
@@ -122,24 +107,7 @@ class _CameraScreenState extends State<CameraScreen> {
     }
   }
 
-  // Fetch username from API
-  Future<void> _fetchName() async {
-    final response = await http.get(
-      Uri.parse('http://10.0.2.2:8000/api/rest-auth/user/'),
-      headers: {'Authorization': 'Token $_token'},
-    );
-
-    if (response.statusCode == 200) {
-      var data = json.decode(response.body);
-      setState(() {
-        _username = data['username'];
-      });
-    } else {
-      _handleError(response);
-    }
-  }
-
-  Future<void> _sendImageToApi(File imageFile, String selectedMaterial, String username) async {
+  Future<void> _sendImageToApi(File imageFile, int selectedMaterial) async {
     final url = Uri.parse('http://10.0.2.2:8000/api/user-recycling-material/');
     final request = http.MultipartRequest('POST', url);
 
@@ -148,8 +116,7 @@ class _CameraScreenState extends State<CameraScreen> {
     request.files.add(imagePart);
 
     // Add fields
-    request.fields['material'] = selectedMaterial;
-    request.fields['name'] = username;
+    request.fields['material'] = selectedMaterial.toString();
 
     // Add Authorization header
     request.headers['Authorization'] = 'Token $_token';
@@ -161,15 +128,17 @@ class _CameraScreenState extends State<CameraScreen> {
     final response = await http.Response.fromStream(streamedResponse);
 
     // Check response code
-    if (response.statusCode == 200) {
-      print('Image uploaded successfully');
+    if (response.statusCode == 201) {
+      // Show success message and navigate to profile screen
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Image uploaded successfully')),
+      );
+      Navigator.pushNamed(context, '/profile');
     } else {
       print('Failed to upload image');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to upload image')),
+      );
     }
-  }
-
-  void _handleError(http.Response response) {
-    print('Error: ${response.reasonPhrase}');
-    // You can handle the error as needed
   }
 }

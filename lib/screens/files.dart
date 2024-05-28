@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'camera_screen.dart';
 
 class FilesScreen extends StatefulWidget {
@@ -9,27 +10,72 @@ class FilesScreen extends StatefulWidget {
 }
 
 class _FilesScreenState extends State<FilesScreen> {
-  List<dynamic> files = []; // API'den gelen dosya verilerini tutacak liste
+  List<dynamic> files = [];
 
   @override
   void initState() {
     super.initState();
-    _fetchFiles(); // Ekran ilk yüklendiğinde dosyaları çek
-    
+    _loadFiles();
   }
 
-  Future<void> _fetchFiles() async {
-    final response = await http.get(Uri.parse('http://10.0.2.2:8000/api/user-recycling-material-list/'));
+  Future<void> _loadFiles() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
+
+    if (token != null) {
+      await _fetchFiles(token);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Token not found. Please login again.')),
+      );
+    }
+  }
+
+  Future<void> _fetchFiles(String token) async {
+    final response = await http.get(
+      Uri.parse('http://10.0.2.2:8000/api/user-recycling-material-list/'),
+      headers: {'Authorization': 'Token $token'},
+    );
 
     if (response.statusCode == 200) {
       setState(() {
-        files = json.decode(response.body); // API'den alınan veriyi ayrıştır ve listeye ata
+        files = json.decode(response.body);
       });
     } else {
       print('Failed to load files');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to load files')),
       );
+    }
+  }
+
+  String getMaterialType(int material) {
+    switch (material) {
+      case 1:
+        return 'Metal';
+      case 2:
+        return 'Plastik';
+      case 3:
+        return 'Kağıt';
+      case 4:
+        return 'Cam';
+      default:
+        return 'Bilinmiyor';
+    }
+  }
+
+  int getMaterialPoints(int material) {
+    switch (material) {
+      case 1:
+        return 50;
+      case 2:
+        return 40;
+      case 3:
+        return 60;
+      case 4:
+        return 30;
+      default:
+        return 0;
     }
   }
 
@@ -73,13 +119,32 @@ class _FilesScreenState extends State<FilesScreen> {
             // Fotoğrafların listesi
             Expanded(
               child: ListView.builder(
-                itemCount: files.length, // API'den gelen dosya sayısı kadar eleman oluştur
+                itemCount: files.length,
                 itemBuilder: (context, index) {
                   var file = files[index];
-                  return ListTile(
-                    leading: Image.network(file['image_url']), // Fotoğrafın URL'si
-                    title: Text(file['title']), // Fotoğrafın başlığı
-                    subtitle: Text(file['description']), // Fotoğrafın açıklaması
+                  String materialType = getMaterialType(file['material']);
+                  int materialPoints = getMaterialPoints(file['material']);
+
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Row(
+                      children: [
+                        Image.network(
+                          file['image'],
+                          width: 100,
+                          height: 100,
+                          fit: BoxFit.cover,
+                        ),
+                        SizedBox(width: 16),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('$materialType', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                            Text('Puan: $materialPoints', style: TextStyle(fontSize: 16)),
+                          ],
+                        ),
+                      ],
+                    ),
                   );
                 },
               ),

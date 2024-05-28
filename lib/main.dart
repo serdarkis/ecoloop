@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/screens/initial_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/profile.dart';  // Profil ekranı dosyasını içe aktarın
 import 'screens/login.dart';  // Giriş ekranı dosyasını içe aktarın
@@ -21,7 +22,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: AuthenticationWrapper(),
+      home: InitialScreen(),
       routes: {
         '/login': (context) => LoginScreen(),
         '/register': (context) => RegisterScreen(),
