@@ -26,6 +26,8 @@ Tercihen bir android emülatörü ile çalıştırın.
 
 Bu proje adreste bulunan [Backend](https://github.com/YSamed/GeriDonusumProje) ile birlikte tasarlanmıştır.
 
+Backend kısmı [Y.Samed Erol](https://github.com/YSamed) tarafından, Mobil uygulama önyüzü ise [Serdar Kış](https://github.com/serdarkis) tarafından yazılmıştır.
+
 ..........................................................................................................................
 
 # EcoLoop Recycling Application
@@ -55,3 +57,5 @@ Preferably, run with an Android emulator.
 ### Development Process
 
 This project is designed in conjunction with the [Backend](https://github.com/YSamed/GeriDonusumProje) available at that address.
+
+The backend part was developed by [Y. Samed Erol](https://github.com/YSamed), while the mobile application frontend was written by [Serdar Kış](https://github.com/serdarkis).
